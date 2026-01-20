@@ -1,0 +1,25 @@
+{
+  "name": "fault-tolerant-command-executor",
+  "version": "1.0.0",
+  "description": "Fault-Tolerant Single-Agent Command Execution System",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "server",
+    "agent"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:shared": "npm run build -w @fault-tolerant/shared",
+    "build:server": "npm run build -w @fault-tolerant/server",
+    "build:agent": "npm run build -w @fault-tolerant/agent",
+    "start:server": "npm run start -w @fault-tolerant/server",
+    "start:agent": "npm run start -w @fault-tolerant/agent",
+    "dev:server": "npm run dev -w @fault-tolerant/server",
+    "dev:agent": "npm run dev -w @fault-tolerant/agent",
+    "clean": "rm -rf server/dist agent/dist shared/dist server/data agent/data"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
