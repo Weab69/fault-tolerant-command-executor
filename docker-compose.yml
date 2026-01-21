@@ -1,0 +1,75 @@
+# Fault-Tolerant Command Execution System
+# 
+# Usage:
+#   docker-compose up --build              # Start both services
+#   docker-compose up --build -d           # Start in background
+#   docker-compose logs -f                 # View logs
+#   docker-compose down                    # Stop services
+#   docker-compose down -v                 # Stop and remove volumes
+#
+# Testing crash scenarios:
+#   docker-compose restart server          # Restart server
+#   docker-compose restart agent           # Restart agent
+#   docker-compose kill agent              # Kill agent (simulates crash)
+#
+# Agent failure simulation:
+#   docker-compose up agent --build -e KILL_AFTER=5
+#   docker-compose up agent --build -e RANDOM_FAILURES=true
+
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: fault-tolerant-server
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist database across restarts
+      - server-data:/app/server/data
+    environment:
+      - PORT=3000
+      - COMMAND_TIMEOUT=60000
+      - STALE_CHECK_INTERVAL=10000
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - skipr-network
+
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    container_name: fault-tolerant-agent
+    depends_on:
+      server:
+        condition: service_healthy
+    volumes:
+      # Persist agent ID across restarts
+      - agent-data:/app/agent/data
+    environment:
+      - SERVER_URL=http://server:3000
+      - POLL_INTERVAL=1000
+      # Uncomment for failure simulation:
+      # - KILL_AFTER=10
+      # - RANDOM_FAILURES=true
+    restart: unless-stopped
+    networks:
+      - skipr-network
+
+volumes:
+  server-data:
+    driver: local
+  agent-data:
+    driver: local
+
+networks:
+  skipr-network:
+    driver: bridge
