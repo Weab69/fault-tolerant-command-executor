@@ -13,8 +13,8 @@
 import express from 'express';
 import path from 'path';
 import { CommandDatabase } from './db/database';
-// import { createCommandRoutes } from './routes/commands'; // Commented out for now
-// import { createAgentRoutes } from './routes/agent';     // Commented out for now
+import { createCommandRoutes } from './routes/commands';
+import { createAgentRoutes } from './routes/agent';
 import { DEFAULT_SERVER_PORT, DEFAULT_COMMAND_TIMEOUT } from '@fault-tolerant/shared';
 
 // Configuration from environment
@@ -48,8 +48,8 @@ app.use((req, _res, next) => {
 });
 
 // Routes
-// app.use('/commands', createCommandRoutes(db)); // Commented out for now
-// app.use('/agent', createAgentRoutes(db));     // Commented out for now
+app.use('/commands', createCommandRoutes(db));
+app.use('/agent', createAgentRoutes(db));
 
 // Health check
 app.get('/health', (_req, res) => {
